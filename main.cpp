@@ -20,6 +20,14 @@ void printArr(int ** _arr,int _r,int _c)
     }
 }
 
+void printList(int * _l,int _len)
+{
+    for(int i = 0;i < _len;i++ )
+    {
+        printf("%d ",_l[i]);
+    }
+    printf("\n");
+}
 /*
  * 1 : 硬币分割,给定数值 以及 硬币面值，求使用硬币最少的分割方案
  *     比如 总额11，币值分别是 1 3 5，最少要三枚硬币 1 5 5
@@ -85,10 +93,12 @@ int lis(int _a[],int _len)
 }
 // <!----------------------------------------------------------------------------------!>
 /*
- * 格子取物,假设有N*M个格子,每个格子放有一定数量的苹果，从左上角的格子出发，每次只能向右或者向下移动
+ * 3 格子取物,假设有N*M个格子,每个格子放有一定数量的苹果，从左上角的格子出发，每次只能向右或者向下移动
  * 一个格子，每移动一个格子就把格子里的苹果取出，--->最多能取到多少苹果
  */
 
+// 解题思路 : 因为只能向下和想右移动 ,所以任何一个状态 只可能是左边或上面两个状态转移而来,
+// 状态转移方程为 MAX_APPLES(x,y) = max(MAX_APPLES(x-1,y),MAX_APPLES(x,y-1))
 int maxApples(int **_apples,int _n,int _m)
 {
     if(_n == 0 && _m == 0)
@@ -105,7 +115,7 @@ int maxApples(int **_apples,int _n,int _m)
 // <!----------------------------------------------------------------------------------!>
 
 /*
- * 格子取物 升级版,从单趟变为三趟，左上到右下->回到左上->再去右下 其余依然不变
+ * 4 格子取物 升级版,从单趟变为三趟，左上到右下->回到左上->再去右下 其余依然不变
  */
 
 int maxApplesEx(int ** _apples,int _x1,int _x2,int _x3,int _y,int _rows_c,int _columns_c)
@@ -170,6 +180,45 @@ int maxApplesEx(int ** _apples,int _x1,int _x2,int _x3,int _y,int _rows_c,int _c
     }
     return result;
 }
+/*
+ * 5 完美洗牌法 : 题目详情：有个长度为2n的数组{a1,a2,a3,...,an,b1,b2,b3,...,bn}，希望排序
+ *   后{a1,b1,a2,b2,....,an,bn}，请考虑有无时间复杂度o(n)，空间复杂度o(1)的解法。
+ *
+ */
+// 解题思路 : 容易想到的就是这种粗暴的解决办法,复制一个新排队，依次把这些牌放到该放的位置
+void shuffleDeck(int *_decks,int _len)
+{
+    int * new_decks = new int[_len];
+    for(int i = 0;i < _len;i++)
+    {
+        new_decks[i] = _decks[i];
+    }
+    for(int l = 0;l < _len;l++)
+    {
+        _decks[l] = l & 1 ? new_decks[(l>>1) + (_len>>1)]:new_decks[l >> 1];
+    }
+    delete []new_decks;
+}
+// 鉴于 题目要求 空间复杂度必须为o(1),所以我们定下解题的基调:每次只将一个数放到它该呆的位置(这个位置是很好计算的),
+// 然后这个位置上的数再放到它该去的位置 依次类推
+
+void perfectShuffle(int *_decks,int _len)
+{
+    int origi_pos = 1;
+    int temp      = 0;
+    int half_len  = _len >> 1;
+    for(int i = 1; i < _len - 1;i++)
+    {
+
+        int correct_pos     = origi_pos < half_len ? origi_pos << 1 : ( (origi_pos - half_len) << 1)+ 1;
+    
+        temp                = _decks[correct_pos];
+        _decks[correct_pos] = _decks[1];
+        _decks[1]           = temp;
+        origi_pos           = correct_pos;
+    }
+}
+
 int main(int argc, const char * argv[]) {
 // <!----------------------------------------------------------------------------------!>
     // insert code here...
@@ -217,6 +266,12 @@ int main(int argc, const char * argv[]) {
     
     printf("三趟最多能取到%d个苹果\n",maxApplesEx(apples, 3,3,3,3,4,4));
 // <!----------------------------------------------------------------------------------!>
+    int arr[20] = {1,3,5,7,9,11,13,15,17,19,2,4,6,8,10,12,14,16,18,20};
+//    shuffleDeck(arr, 10);
+//    perfectShuffle(arr, 20);
+//    shuffleDecksDp(arr, 10);
+//    betterShuffle(arr, 20);
+    printList(arr, 20);
     std::cout << "Hello, World!\n";
     return 0;
 }
