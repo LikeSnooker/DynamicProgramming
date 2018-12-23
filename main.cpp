@@ -7,7 +7,8 @@
 //
 
 #include <iostream>
-
+#include <vector>
+using namespace std;
 void printArr(int ** _arr,int _r,int _c)
 {
     for(int r = 0; r < _r;r++)
@@ -171,7 +172,7 @@ int maxApplesEx(int ** _apples,int _x1,int _x2,int _x3,int _y,int _rows_c,int _c
                 {
                     right_s += _apples[_y][r];
                 }
-
+                
                 int temp = sub + left_s + mid_s + right_s;
                 if(temp > result)
                     result = temp;
@@ -209,9 +210,9 @@ void perfectShuffle(int *_decks,int _len)
     int half_len  = _len >> 1;
     for(int i = 1; i < _len - 1;i++)
     {
-
+        
         int correct_pos     = origi_pos < half_len ? origi_pos << 1 : ( (origi_pos - half_len) << 1)+ 1;
-    
+        
         temp                = _decks[correct_pos];
         _decks[correct_pos] = _decks[1];
         _decks[1]           = temp;
@@ -242,22 +243,110 @@ int maxSegementDp(int *_data,int _len)
  * 7 给定一个二维数组,有正有负 求它的所有子矩形构成的数组中数字和的最大值
  */
 
-int maxSubMatrix(int **_matrix,int _r,int _c,int _w,int _h)
+// 结题思路,二维无从下手,试图将其转化成一维数组问题,这就是降维
+// 假设有个数组 dp[i][c1][c2],表示的是 第i行 ,c1列 到 c2列 各数字之和
+//
+long maxSubMatrix(vector<vector<long>> & matrix)
 {
-    return 0;
+    long d1 = matrix.size();
+    if(d1 == 0)
+        return 0;
+    long d2 = matrix[0].size();
+    if(d2 == 0)
+        return 0;
+    
+    vector<vector<vector<long>>> sums_d1_d21_d22 = vector<vector<vector<long>>>( d1,vector<vector<long>>(d2,vector<long>(d2,0)));
+    
+    for(int d1_ix = 0;d1_ix < d1;d1_ix++)
+    {
+        //
+        for(int d2_ix1 = 0; d2_ix1 < d2;d2_ix1++)
+        {
+            for(int d2_ix2 = d2_ix1;d2_ix2 < d2;d2_ix2++)
+            {
+                if(d2_ix1 == d2_ix2)
+                    sums_d1_d21_d22[d1_ix][d2_ix1][d2_ix2] = matrix[d1_ix][d2_ix1];
+                else
+                    sums_d1_d21_d22[d1_ix][d2_ix1][d2_ix2] = sums_d1_d21_d22[d1_ix][d2_ix1][d2_ix2-1] + matrix[d1_ix][d2_ix2];
+            }
+        }
+    }
+    
+    long max = 0;
+    for(int d2_ix1 = 0;d2_ix1 < d2;d2_ix1++)
+    {
+        for(int d2_ix2 = d2_ix1;d2_ix2 < d2;d2_ix2++)
+        {
+            long sum = 0;
+            for(int d1_ix = 0; d1_ix < d1;d1_ix++)
+            {
+                sum += sums_d1_d21_d22[d1_ix][d2_ix1][d2_ix2];
+                if(sum < 0)
+                    sum = 0;
+                else
+                    if(sum > max)
+                        max = sum;
+            }
+        }
+    }
+    return max;
 }
 
+/*
+ * 8  假设一个数的因子只有2 or 3 or 5，我们称这样的数为丑数
+ *    例如 1 2 3 4 5 6 8 9 10 ...
+ *    参数 n,给出第n 个丑数
+ */
+class Solution {
+public:
+    /**
+     * param n, An integer
+     * return: the nth prime number as description.
+     */
+    // 用动态规划的思路求解
+    // 考虑到一个ugly number可以通过对另一个ugly number乘上2、3、5获得,我们可以维系一个保存了
+    // ugly  number 的队列,将队列中的某个数乘上2、3、5 并添加到队列中
+    int nthUglyNumber(int n) {
+        vector<int> ugly_nums;
+        ugly_nums.push_back(1);
+        
+        int num2_ix = 0;
+        int num3_ix = 0;
+        int num5_ix = 0;
+        
+        int nth = 1;
+        while(nth < n)
+        {
+            int num2 = ugly_nums[num2_ix] * 2;
+            int num3 = ugly_nums[num3_ix] * 3;
+            int num5 = ugly_nums[num5_ix] * 5;
+            int temp  = num2 < num3 ? num2 : num3;
+            int min   = temp < num5 ? temp : num5;
+            ugly_nums.push_back(min);
+            
+            if(ugly_nums[num2_ix] * 2 <= ugly_nums.back())
+                num2_ix ++;
+            if(ugly_nums[num3_ix] * 3 <= ugly_nums.back())
+                num3_ix ++;
+            if(ugly_nums[num5_ix] * 5 <= ugly_nums.back())
+                num5_ix ++;
+            
+            nth ++;
+        }
+        return ugly_nums.back();
+    }
+};
 int main(int argc, const char * argv[]) {
-// <!-------------------------------------第一题------------------------------------------!>
+    // <!-------------------------------------第一题------------------------------------------!>
     // insert code here...
     int coins[3] = {1,3,5};
-//    minimumNumberCoins(11,coins, 3);
+    //    minimumNumberCoins(11,coins, 3);
     printf("总币值为 11，分别有 1 3 5,最小币值数为:%d\n",minimumNumberCoins(11, coins, 3));
-// <!-------------------------------------第二题------------------------------------------!>
+    // <!-------------------------------------第二题------------------------------------------!>
     
     int a[5] = {1,2,3,4,2};
     printf("最长非降序子序列的长度为:%d\n",lis(a,5));
-// <!-------------------------------------第三题------------------------------------------!>
+    // <!-------------------------------------第三题------------------------------------------!>
     
     int **apples = new int* [5];
     for(int i = 0; i < 5;i++)
@@ -293,17 +382,29 @@ int main(int argc, const char * argv[]) {
     printf("最多能取到%d个苹果\n",maxApples(apples, 3, 3));
     
     printf("三趟最多能取到%d个苹果\n",maxApplesEx(apples, 3,3,3,3,4,4));
-// <!-------------------------------------第五题------------------------------------------!>
+    // <!-------------------------------------第五题------------------------------------------!>
     int arr[20] = {1,3,5,7,9,11,13,15,17,19,2,4,6,8,10,12,14,16,18,20};
-
+    
     perfectShuffle(arr, 20);
-
+    
     printList(arr, 20);
-// <!-------------------------------------第六题------------------------------------------!>
+    // <!-------------------------------------第六题------------------------------------------!>
     int arr6[10]   = {1,-2,3,-4,5,-6,7,-8,9,-10};
-
+    
     printf("最大子串和为: %d\n",maxSegementDp(arr6, 10));
-// <!-------------------------------------第七题------------------------------------------!>
+    // <!-------------------------------------第七题------------------------------------------!>
+    vector<vector<long>> matrix = {{0,-2,-7,0},
+        {9,2,-6,2},
+        {-4,1,-4,1},
+        {-1,8,0,-2}};
+    
+    long max_sum = maxSubMatrix(matrix);
+    printf("最大子数组和为%ld\n",max_sum);
+    // <!-------------------------------------第八题------------------------------------------!>
+    Solution s = Solution();
+    int nth = 10;
+    cout << nth << "th ugly number is : "<<s.nthUglyNumber(nth) <<endl;
     std::cout << "Hello, World!\n";
     return 0;
 }
+
