@@ -336,6 +336,99 @@ public:
         return ugly_nums.back();
     }
 };
+/*
+ * 9 钢条切割 已知不同长度钢条的价值 p[k] , 求一根长度为n的钢条如何切割收益最大
+ */
+// 自顶向下的递归
+    int cutRod(vector<int> & p,int n)
+    {
+        if(n == 0)
+            return 0;
+        if(n == 1)
+            return p[0];
+        int most   = -1;
+        int income = 0;
+        for(int i = 1; i <= n;i++)
+        {
+            income = p[i-1] + cutRod(p, n-i);
+            if(income > most)
+                most = income;
+        }
+        return most;
+    }
+
+// 自底向上 表格法 动态规划
+    int cutRod2(vector<int> & p,int n)
+    {
+        vector<int> r = vector<int>(n+1,0);
+        r[1] = p[0];
+        int max = -1;
+        for(int i = 2;i <= n;i++)
+        {
+            max = -1;
+            for(int j = 1; j <= i;j++)
+            {
+                if(r[i-j] + p[j-1] > max)
+                    max = r[i-j] + p[j-1];
+            }
+            r[i] = max;
+        }
+        return r[n];
+    }
+
+/*
+ * 10 矩阵链最优分割
+ */
+//自顶向下的递归
+    int optimalDivision(vector<int> & p,int s,int e)
+    {
+        if(s >= e)
+            return 0;
+        if(s + 1 == e)
+            return p[s-1] * p[s] * p[s+1];
+        
+        int optimal = 9999999;
+        for(int k = s;k < e;k++)
+        {
+            int left  = optimalDivision(p, s, k);
+            
+            int right = optimalDivision(p, k+1,e);
+            
+            int total = left + right + p[s-1] * p[k] * p[e];
+            if(total < optimal)
+                optimal = total;
+        }
+        return optimal;
+    }
+
+    int dp2(vector<int> p)// m0 {p0,p1} m1{p1,p2}
+    {
+        vector<vector<int>> dp = vector<vector<int>>(p.size(),vector<int>(p.size(),0));
+        for(int l = 1;l < p.size();l++)
+        {
+            for(int s = 0; s < p.size() - l;s++)
+            {
+                if(l == 1)
+                    dp[s][s] = 0;
+                else if(l == 2)
+                    dp[s][s+1] = p[s] * p[s+1] * p[s+2];
+                else
+                {
+                    int min = 99999;
+                    
+                    for(int k = 1;k < l ;k++)
+                    {
+                        int total = dp[s][s+k-1] + dp[s+k][s+l-1] + p[s]*p[s+k]* p[s+l];
+                        if(total < min)
+                            min = total;
+                    }
+                    dp[s][s+l-1] = min;
+                }
+                
+            }
+        }
+        return dp[0][p.size()-2];
+    }
 int main(int argc, const char * argv[]) {
     // <!-------------------------------------第一题------------------------------------------!>
     // insert code here...
